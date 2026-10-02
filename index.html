@@ -1,0 +1,2918 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@200;300;400;500;600&display=swap"
+        rel="stylesheet">
+
+  <title>ARE YOU HUMAN?</title>
+
+  <style>
+
+    :root {
+      --bg: #d3e0e8;
+      --panel-bg: #ffffff;
+      --panel-border: #ffffff;
+      --text: #1f2733;
+      --text-muted: #5b6572;
+      --cell-bg: #f7f9fc;
+      --cell-hover: #e8edf5;
+      --accent: #4285F4;
+      --accent-dark: #2563eb;
+      --selected-bg: rgba(66, 133, 244, 0.18);
+      --selected-border: #4285F4;
+      --success: #16a34a;
+      --error: #dc2626;
+      --shadow: rgba(20, 30, 50, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 
+        Helvetica,
+        Arial,
+        sans-serif;
+
+      min-height: 100vh;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      padding: 24px;
+    }
+
+    /* =========================================
+       MOUSE TRAIL CANVAS
+       ========================================= */
+
+    #trailCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;   /* never blocks clicks */
+      z-index: 500;           /* above the page, below the name screen */
+    }
+
+    /* =========================================
+       NAME ENTRY SCREEN
+       ========================================= */
+
+    .name-screen {
+      position: fixed;
+      inset: 0;
+
+      background: #d3e0e8;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      padding: 24px;
+
+      z-index: 1000;
+    }
+
+    .name-box {
+      width: 100%;
+      max-width: 304px;
+      text-align: center;
+      align-items: center;
+
+      color: #ffffff;
+    }
+
+    .name-box h2 {
+      margin: 0 0 12px 0;
+
+      font-size: 24px;
+      font-weight: 100;
+    }
+
+    .name-box p {
+      margin: 0 0 24px 0;
+
+      font-size: 14px;
+
+      color: #a0a0a0;
+    }
+
+    .name-box input {
+      width: 100%;
+
+      padding: 12px 14px;
+
+      border: 1px solid #444;
+
+      background: #111;
+
+      color: #ffffff;
+
+      font-size: 14px;
+
+      outline: none;
+
+      margin-bottom: 10px;
+
+      border-radius: 0;
+    }
+
+    .name-box input::placeholder {
+      color: #666;
+    }
+
+    .name-box input:focus {
+      border-color: #4285F4;
+    }
+
+    .name-box button {
+      width: 100%;
+
+      padding: 11px 18px;
+
+      border: none;
+
+      border-radius: 3px;
+
+      background: #4285F4;
+
+      color: #ffffff;
+
+      font-size: 13px;
+
+      font-weight: 600;
+
+      cursor: pointer;
+    }
+
+    .name-box button:hover {
+      background: #2563eb;
+    }
+
+    /* =========================================
+       "I'M NOT A ROBOT" WIDGET
+       ========================================= */
+
+    .recaptcha-box {
+      width: 100%;
+      height: 74px;
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f9f9f9;
+      border: 1px solid #d3d3d3;
+      border-radius: 3px;
+      box-shadow: 0 0 4px rgba(0, 0, 0, 0.08);
+      color: #282727;
+      text-align: left;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
+    }
+
+    .recaptcha-box:focus-visible {
+      box-shadow: 0 0 0 2px #4285F4;
+    }
+
+    .rc-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .rc-checkbox {
+      position: relative;
+      width: 28px;
+      height: 28px;
+      background: #ffffff;
+      border: 2px solid #c1c1c1;
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.15s ease;
+    }
+
+    .recaptcha-box:hover .rc-checkbox {
+      border-color: #b2b2b2;
+    }
+
+    .rc-label {
+      font-family: Roboto, Helvetica, Arial, sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+    }
+
+    .rc-spinner {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      border: 3px solid #e3e3e3;
+      border-top-color: #4285F4;
+      border-radius: 50%;
+      display: none;
+      animation: rc-spin 0.8s linear infinite;
+    }
+
+    .rc-tick {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      display: none;
+    }
+
+    .rc-tick path {
+      fill: none;
+      stroke: #16a34a;
+      stroke-width: 3.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 30;
+      stroke-dashoffset: 30;
+    }
+
+    .recaptcha-box.loading .rc-checkbox {
+      border-color: transparent;
+      background: transparent;
+    }
+
+    .recaptcha-box.loading .rc-spinner {
+      display: block;
+    }
+
+    .recaptcha-box.done {
+      cursor: default;
+    }
+
+    .recaptcha-box.done .rc-checkbox {
+      border-color: transparent;
+      background: transparent;
+    }
+
+    .recaptcha-box.done .rc-tick {
+      display: block;
+    }
+
+    .recaptcha-box.done .rc-tick path {
+      animation: rc-draw 0.35s ease forwards;
+    }
+
+    @keyframes rc-spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes rc-draw {
+      to { stroke-dashoffset: 0; }
+    }
+
+    .rc-brand {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      font-family: Roboto, Helvetica, Arial, sans-serif;
+      color: #555;
+    }
+
+    .rc-brand svg {
+      width: 30px;
+      height: 30px;
+    }
+
+    .rc-brand .rc-name {
+      font-size: 10px;
+      font-weight: 500;
+    }
+
+    .rc-brand .rc-fine {
+      font-size: 8px;
+      color: #777;
+    }
+
+    .name-box input.invalid {
+      border-color: #dc2626;
+    }
+
+
+    /* =========================================
+       CENTERED PAGE CONTENT
+       ========================================= */
+
+    .page-content {
+      width: 100%;
+
+      display: flex;
+      flex-direction: column;
+
+      align-items: center;
+      justify-content: center;
+    }
+
+
+    /* =========================================
+       PAGE TITLE
+       ========================================= */
+
+    h1 {
+      color: #033465;
+
+      font-size: 32px;
+
+      font-weight: 800;
+
+      text-align: center;
+
+      margin: 0 0 60px 0;
+
+      letter-spacing: 0.02em;
+    }
+
+    h2 {
+      color: #033465;
+
+      font-size: 20px;
+
+      font-weight: 100;
+
+      text-align: center;
+
+      margin: 0 0 16px 0;
+
+      letter-spacing: 0.02em;
+    }
+
+
+    /* =========================================
+       LIVE STOPWATCH
+       ========================================= */
+
+    .timer-label {
+      color: #030303;
+
+      font-family: Arial, Helvetica, sans-serif;
+
+      font-size: 11px;
+
+      font-weight: 600;
+
+      text-align: center;
+
+      letter-spacing: 0.15em;
+
+      margin: 0 0 4px 0;
+
+      opacity: 0.85;
+    }
+
+    .timer-display {
+      color: #000000;
+
+      font-family: Arial, Helvetica, sans-serif;
+
+      font-size: 16px;
+
+      font-weight: 100px;
+
+      text-align: center;
+
+      letter-spacing: 0.05em;
+
+      margin: 0 0 50px 0;
+
+      opacity: 0.85;
+    }
+
+
+    /* =========================================
+       DIGITAL RECEIPT
+       ========================================= */
+
+    .receipt {
+      margin-top: 8px;
+
+      border: 1px dashed var(--panel-border);
+
+      padding: 16px;
+
+            font-family: 'IBM Plex Mono', monospace;
+
+      font-size: 13px;
+
+      color: var(--text);
+
+      text-align: left;
+    }
+
+    .receipt-title {
+      text-align: center;
+
+      font-weight: 700;
+
+      letter-spacing: 0.08em;
+
+      margin-bottom: 10px;
+    }
+
+    .receipt-row {
+      display: flex;
+
+      justify-content: space-between;
+
+      gap: 12px;
+
+      margin-bottom: 4px;
+    }
+
+    .receipt-divider {
+      border-top: 1px dashed var(--panel-border);
+
+      margin: 8px 0;
+    }
+
+    .path-canvas {
+      display: block;
+
+      width: 100%;
+
+      aspect-ratio: 1 / 1;
+
+      border: 1px solid #d3e0e8;
+
+      background: #f7f9fc;
+
+      margin-top: 6px;
+    }
+
+    .receipt-stamp {
+      display: inline-block;
+
+      margin-top: 6px;
+
+      padding: 4px 12px;
+
+      border: 2px solid var(--success);
+
+      color: var(--success);
+
+      font-weight: 700;
+
+      letter-spacing: 0.05em;
+
+      transform: rotate(-3deg);
+    }
+
+    .receipt-stamp.failed {
+      border-color: var(--error);
+      color: var(--error);
+    }
+
+
+    /* =========================================
+       MAIN CAPTCHA CARD
+       ========================================= */
+
+    .captcha-card {
+      width: 100%;
+
+      max-width: 420px;
+
+      background: var(--panel-bg);
+
+      border-radius: 0;
+
+      box-shadow: 0 10px 30px var(--shadow);
+
+      padding: 20px;
+
+      margin: 0 auto;
+    }
+
+
+    /* =========================================
+       BLUE INSTRUCTION BOX
+       ========================================= */
+
+    .captcha-header {
+      background: #4285F4;
+
+      color: #ffffff;
+
+      margin: -20px -20px 16px -20px;
+
+      padding: 22px 20px;
+    }
+
+    .captcha-title {
+      font-size: 16px;
+
+      font-weight: 500;
+
+      line-height: 1.4;
+    }
+
+    .captcha-title .target {
+      color: #ffffff;
+
+      font-weight: 700;
+    }
+
+
+    /* =========================================
+       CHANCES INDICATOR
+       ========================================= */
+
+    .chances {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .chance {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--success);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .chance.lost {
+      background: var(--error);
+      transform: scale(1.1);
+    }
+
+
+    /* =========================================
+       CAPTCHA GRID
+       ========================================= */
+
+    .grid-wrap {
+      display: flex;
+
+      justify-content: center;
+
+      align-items: center;
+
+      margin: 0 auto 16px auto;
+    }
+
+    .grid {
+      display: grid;
+
+      grid-template-columns: repeat(3, 1fr);
+
+      grid-template-rows: repeat(3, 1fr);
+
+      gap: 4px;
+
+      width: 100%;
+
+      aspect-ratio: 1 / 1;
+
+      max-width: 340px;
+
+      margin: 0 auto;
+
+      border: 2px solid var(--panel-border);
+
+      border-radius: 0;
+
+      overflow: hidden;
+
+      background: var(--panel-border);
+    }
+
+
+    /* =========================================
+       INDIVIDUAL IMAGE TILE
+       ========================================= */
+
+    .cell {
+      position: relative;
+
+      width: 100%;
+      height: 100%;
+
+      min-width: 0;
+      min-height: 0;
+
+      background: var(--cell-bg);
+
+      border: none;
+
+      border-radius: 0;
+
+      cursor: pointer;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: center;
+
+      padding: 0;
+
+      transition:
+        background 0.12s ease,
+        transform 0.08s ease;
+
+      -webkit-tap-highlight-color: transparent;
+
+      color: var(--text-muted);
+
+      overflow: hidden;
+    }
+
+    .cell .shape {
+      width: 100%;
+      height: 100%;
+
+      display: block;
+
+      overflow: hidden;
+    }
+
+    .cell .shape img {
+      display: block;
+
+      width: 100%;
+      height: 100%;
+
+      object-fit: cover;
+
+      object-position: center;
+
+      /* Smooth zoom when the user hovers over an image */
+      transition: transform 0.25s ease;
+      transform-origin: center center;
+    }
+
+    .cell:hover {
+      background: var(--cell-hover);
+      z-index: 10;
+      overflow: visible;
+    }
+
+    .cell:hover .shape img {
+      transform: scale(1.45);
+    }
+
+    .cell:active {
+      transform: scale(0.96);
+    }
+
+
+    /* =========================================
+       SELECTED TILE
+       ========================================= */
+
+    .cell.selected {
+      background: var(--selected-bg);
+
+      box-shadow:
+        inset 0 0 0 3px var(--selected-border);
+    }
+
+
+    /* =========================================
+       CHECKMARK
+       ========================================= */
+
+    .cell .check {
+      position: absolute;
+
+      top: 4px;
+      right: 4px;
+
+      width: 16px;
+      height: 16px;
+
+      border-radius: 50%;
+
+      background: var(--selected-border);
+
+      color: #fff;
+
+      font-size: 10px;
+
+      display: none;
+
+      align-items: center;
+      justify-content: center;
+
+      line-height: 1;
+    }
+
+    .cell.selected .check {
+      display: flex;
+    }
+
+
+    /* =========================================
+       FOOTER
+       ========================================= */
+
+    .footer-row {
+      display: flex;
+
+      align-items: center;
+
+      justify-content: flex-end;
+
+      gap: 10px;
+    }
+
+
+    /* =========================================
+       RELOAD BUTTON
+       ========================================= */
+
+    .reload-btn {
+      background: none;
+
+      border: 1px solid var(--panel-border);
+
+      color: var(--text-muted);
+
+      border-radius: 0;
+
+      width: 36px;
+      height: 36px;
+
+      font-size: 25px;
+
+      cursor: pointer;
+
+      display: flex;
+
+      align-items: center;
+      justify-content: center;
+
+      flex-shrink: 0;
+
+      margin-right: auto;
+    }
+
+    .reload-btn:hover {
+      background: var(--cell-hover);
+    }
+
+
+    /* =========================================
+       VERIFY BUTTON
+       ========================================= */
+
+    .verify-btn {
+      flex: none;
+
+      background: #4285F4;
+
+      color: #fff;
+
+      border: none;
+
+      border-radius: 3px;
+
+      padding: 8px 18px;
+
+      font-size: 13px;
+
+      font-weight: 600;
+
+      cursor: pointer;
+
+      transition: background 0.15s ease;
+    }
+
+    .verify-btn:hover {
+      background: var(--accent-dark);
+    }
+
+    .verify-btn:disabled {
+      opacity: 0.6;
+
+      cursor: default;
+    }
+
+
+    /* =========================================
+       STATUS
+       ========================================= */
+
+    .status {
+      margin-top: 12px;
+
+      font-size: 13px;
+
+      text-align: center;
+
+      min-height: 18px;
+
+      font-weight: 600;
+    }
+
+    .status.success {
+      color: var(--success);
+    }
+
+    .status.error {
+      color: var(--error);
+    }
+
+    .status.neutral {
+      color: var(--text-muted);
+
+      font-weight: 400;
+    }
+
+    /* =========================================
+       FLOATING STAGE (after the receipt)
+       ========================================= */
+
+    .float-stage {
+      position: fixed;
+      inset: 0;
+      z-index: 600;
+      display: none;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 30% 20%, #e6eff5 0%, var(--bg) 55%, #bccfdb 100%);
+      animation: stage-in 0.6s ease;
+    }
+
+    @keyframes stage-in {
+      from { opacity: 0; filter: blur(6px); }
+      to   { opacity: 1; filter: blur(0); }
+    }
+
+    .float-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 600;
+  display: none;
+  overflow: hidden;
+  background: #000000;
+  animation: stage-in 0.6s ease;
+}
+
+.float-title {
+  color: #ffffff;
+  font-size: 28px;
+  font-weight: 800;
+  align-items: center;
+  letter-spacing: 0.02em;
+  margin: 0 0 6px 0;
+}
+
+.float-sub {
+  color: #9aa4af;
+  font-size: 14px;
+  margin: 0;
+}
+
+    .float-item {
+      position: absolute;
+      left: 0;
+      top: 0;
+      padding: 0;
+      background: none;
+      cursor: pointer;
+      will-change: transform;
+    }
+
+    .float-item img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: var(--cell-bg);
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+
+    /* =========================================
+   LIVE METADATA PANEL
+   ========================================= */
+
+.meta-panel {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  width: 210px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px dashed #8fa3b3;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--text);
+  z-index: 450;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.meta-panel.visible {
+  opacity: 1;
+}
+
+.meta-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed #8fa3b3;
+}
+
+.meta-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--error);
+  animation: meta-blink 1.2s ease-in-out infinite;
+}
+
+@keyframes meta-blink {
+  50% { opacity: 0.2; }
+}
+
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 3px;
+}
+
+.meta-row span:first-child {
+  color: var(--text-muted);
+}
+
+.meta-row span:last-child {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.meta-sep {
+  border-top: 1px dashed #c3d0da;
+  margin: 6px 0;
+}
+
+/* On narrow screens, move it to a compact strip at the bottom */
+@media (max-width: 900px) {
+  .meta-panel {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: auto;
+    padding: 8px 12px;
+    font-size: 10px;
+    columns: 2;
+    column-gap: 20px;
+  }
+  .meta-title, .meta-sep { display: none; }
+  .meta-row { break-inside: avoid; }
+}
+  </style>
+</head>
+
+
+<body>
+
+  <!-- MOUSE TRAIL CANVAS -->
+  <canvas id="trailCanvas"></canvas>
+
+
+  <!-- =========================================
+       NAME ENTRY SCREEN
+       ========================================= -->
+
+  <div class="name-screen" id="nameScreen">
+
+    <div class="name-box">
+
+      <h2>Before the test begins...</h2>
+
+      <input
+        type="text"
+        id="nameInput"
+        placeholder="Enter your name"
+        autocomplete="off"
+      >
+
+      
+<input
+  type="number"
+  id="ageInput"
+  placeholder="Enter your age"
+  min="1"
+  max="120"
+  step="1"
+  inputmode="numeric"
+  autocomplete="off"
+>
+
+      <div
+        class="recaptcha-box"
+        id="nameSubmit"
+        role="checkbox"
+        aria-checked="false"
+        aria-label="I'm not a robot"
+        tabindex="0"
+      >
+
+        <div class="rc-left">
+
+          <div class="rc-checkbox">
+
+            <div class="rc-spinner"></div>
+
+            <svg class="rc-tick" viewBox="0 0 30 30">
+              <path d="M6 16 L12 22 L24 8"></path>
+            </svg>
+
+          </div>
+
+          <span class="rc-label">I'm not a robot</span>
+
+        </div>
+
+        <div class="rc-brand">
+
+          <svg viewBox="0 0 32 32" aria-hidden="true">
+            <path d="M16 5a11 11 0 0 1 9.5 5.5" fill="none" stroke="#4285F4" stroke-width="3.5" stroke-linecap="round"/>
+            <path d="M25.5 21.5A11 11 0 0 1 16 27" fill="none" stroke="#1C3AA9" stroke-width="3.5" stroke-linecap="round"/>
+            <path d="M6.5 21.5A11 11 0 0 1 6.5 10.5" fill="none" stroke="#ababab" stroke-width="3.5" stroke-linecap="round"/>
+            <path d="M22 4l4 7-8 1z" fill="#4285F4"/>
+          </svg>
+
+          <span class="rc-name">reCAPTCHA</span>
+
+          <span class="rc-fine">Privacy - Terms</span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- =========================================
+       MAIN PAGE
+       ========================================= -->
+
+  <div class="page-content">
+
+    <!-- PAGE TITLE -->
+
+   
+
+    <h2 id="levelLabel">Level 1</h2>
+
+    <div class="timer-display" id="timerDisplay">00:00.0</div>
+
+
+    <!-- CAPTCHA -->
+
+    <div class="captcha-card">
+
+
+      <!-- BLUE INSTRUCTION BOX -->
+
+      <div class="captcha-header">
+
+        <div class="captcha-title" id="captchaTitle">
+
+          <span id="promptPrefix">Select all squares with</span>
+
+          <span
+            class="target"
+            id="targetLabel"
+          >
+            real people
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <!-- CHANCES -->
+
+      <div class="chances" id="chances" aria-label="Chances remaining">
+        <div class="chance"></div>
+        <div class="chance"></div>
+        <div class="chance"></div>
+      </div>
+
+
+
+      <!-- 3×3 CAPTCHA GRID -->
+
+      <div class="grid-wrap">
+
+        <div
+          class="grid"
+          id="grid"
+        >
+        </div>
+
+      </div>
+
+
+
+      <!-- FOOTER -->
+
+      <div class="footer-row">
+
+        <button
+          class="reload-btn"
+          id="reloadBtn"
+          title="New challenge"
+          type="button"
+        >
+          ⟳
+        </button>
+
+
+        <button
+          class="verify-btn"
+          id="verifyBtn"
+          type="button"
+        >
+          Verify
+        </button>
+
+      </div>
+
+
+
+      <!-- STATUS -->
+
+      <div
+        class="status neutral"
+        id="status"
+      >
+      </div>
+
+
+      <!-- DIGITAL RECEIPT (shown once all levels are done) -->
+
+      <div
+        class="receipt"
+        id="receiptContainer"
+        style="display: none;"
+      >
+      </div>
+
+
+    </div>
+
+  </div>
+
+
+
+  <!-- =========================================
+       FLOATING STAGE (shown after the receipt)
+       ========================================= -->
+
+  <div class="float-stage" id="floatStage">
+
+    <div class="float-head">
+
+      <div class="float-title">CAPTCHA ARCHIVE</div>
+
+      <p class="float-sub">
+        Hover over one to pause and zoom in.
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <script>
+
+    (function () {
+
+
+      /* =========================================
+         USER NAME
+         ========================================= */
+
+      let userName = "";
+
+
+      const nameScreen =
+        document.getElementById("nameScreen");
+
+      const nameInput =
+        document.getElementById("nameInput");
+
+      const nameSubmit =
+        document.getElementById("nameSubmit");
+
+
+
+      /* =========================================
+         NAME SUBMISSION
+         ========================================= */
+
+      function submitName() {
+
+        const name =
+          nameInput.value.trim();
+
+
+        // Don't continue without a name
+
+        if (!name) {
+
+          nameInput.focus();
+
+          return;
+
+        }
+
+
+        // Save the user's name
+
+        userName = name;
+
+
+        // Hide the name screen
+
+        nameScreen.style.display = "none";
+
+
+        // Start the stopwatch and the first level's
+        // per-level timer at the same moment.
+
+        gameStartTime = Date.now();
+
+        levelStartTime = Date.now();
+
+        timerIntervalId =
+          setInterval(updateTimerDisplay, 100);
+
+
+        // Start the mouse trail + distance tracking
+
+        startTracking();
+
+
+        // Focus the CAPTCHA
+
+        document.getElementById("grid").focus();
+
+      }
+
+
+      // Fake "I'm not a robot" check: spinner, then a green
+      // tick, then the test begins.
+
+      let verifyingHuman = false;
+
+      function startHumanCheck() {
+
+        if (verifyingHuman) return;
+
+
+        // Need a name first
+
+        if (!nameInput.value.trim()) {
+
+          nameInput.classList.add("invalid");
+
+          nameInput.focus();
+
+          return;
+
+        }
+
+
+        verifyingHuman = true;
+
+        nameSubmit.classList.add("loading");
+
+
+        setTimeout(function () {
+
+          nameSubmit.classList.remove("loading");
+
+          nameSubmit.classList.add("done");
+
+          nameSubmit.setAttribute("aria-checked", "true");
+
+
+          setTimeout(submitName, 700);
+
+        }, 1100);
+
+      }
+
+
+      nameSubmit.addEventListener(
+        "click",
+        startHumanCheck
+      );
+
+
+      nameSubmit.addEventListener(
+        "keydown",
+        function (event) {
+
+          if (event.key === "Enter" || event.key === " ") {
+
+            event.preventDefault();
+
+            startHumanCheck();
+
+          }
+
+        }
+      );
+
+
+      nameInput.addEventListener(
+        "input",
+        function () {
+
+          nameInput.classList.remove("invalid");
+
+        }
+      );
+
+
+      // Allow Enter key to submit name
+
+      nameInput.addEventListener(
+        "keydown",
+        function (event) {
+
+          if (event.key === "Enter") {
+
+            startHumanCheck();
+
+          }
+
+        }
+      );
+
+
+
+      /* =========================================
+         LEVELS
+
+         Each level is its own self-contained
+         CAPTCHA: its own 9 images, its own
+         correct answers, its own instruction
+         text.
+
+         Order below determines play order:
+         LEVELS[0] is shown as "Level 1", etc.
+         ========================================= */
+
+      const LEVELS = [
+
+        // ---------- LEVEL 1 ----------
+        {
+          instruction: "crosswalks",
+
+          shapes: {
+
+            item1: {
+              label: "crosswalk",
+              img: '<img src="crosswalk1.jpg" alt="item 1">'
+            },
+            item2: {
+              label: "an animal",
+              img: '<img src="crosswalk2.jpg" alt="item 2">'
+            },
+            item3: {
+              label: "an animal",
+              img: '<img src="crosswalk3.jpg" alt="item 3">'
+            },
+            item4: {
+              label: "an animal",
+              img: '<img src="crosswalk4.jpg" alt="item 4">'
+            },
+            item5: {
+              label: "an animal",
+              img: '<img src="crosswalk5.jpg" alt="item 5">'
+            },
+            item6: {
+              label: "an animal",
+              img: '<img src="crosswalk6.jpg" alt="item 6">'
+            },
+            item7: {
+              label: "an animal",
+              img: '<img src="crosswalk7.jpg" alt="item 7">'
+            },
+            item8: {
+              label: "an animal",
+              img: '<img src="crosswalk8.jpg" alt="item 8">'
+            },
+            item9: {
+              label: "an animal",
+              img: '<img src="crosswalk9.jpg" alt="item 9">'
+            }
+
+          },
+
+          // TODO: set these to whichever keys are the
+          // correct images in this image set.
+          correctAnswers: [
+            "item1",
+            "item5",
+            "item7"
+          ]
+        },
+
+
+        // ---------- LEVEL 2 ----------
+        {
+          instruction: "a bus",
+
+
+          shapes: {
+
+            bus1: {
+              label: "bus 1",
+              img: '<img src="bus1.jpg" alt="bus 1">'
+            },
+            bus2: {
+              label: "bus 2",
+              img: '<img src="bus2.jpg" alt="bus 2">'
+            },
+            bus3: {
+              label: "bus 3",
+              img: '<img src="bus3.jpg" alt="bus 3">'
+            },
+            bus4: {
+              label: "bus 4",
+              img: '<img src="bus4.jpg" alt="bus 4">'
+            },
+            bus5: {
+              label: "a real person",
+              img: '<img src="bus5.jpg" alt="real person 5">'
+            },
+            bus6: {
+              label: "a real person",
+              img: '<img src="bus6.jpg" alt="person 6">'
+            },
+            bus7: {
+              label: "a real person",
+              img: '<img src="bus7.jpg" alt="real person 7">'
+            },
+            bus8: {
+              label: "a real person",
+              img: '<img src="bus8.jpg" alt="real person 8">'
+            },
+            bus9: {
+              label: "a real person",
+              img: '<img src="bus9.jpg" alt="person 9">'
+            }
+
+          },
+
+          // The four images (by key, above) that are
+          // actually real people.
+          correctAnswers: [
+            "bus6",
+            "bus7",
+          ]
+        },
+
+
+        // ---------- LEVEL 3 ----------
+        {
+          instruction: "a bicycle",
+
+
+          shapes: {
+
+            photo1: {
+              label: "bike1",
+              img: '<img src="bike1.jpg" alt="bike">'
+            },
+            bike2: {
+              label: "a forest",
+              img: '<img src="bike2.jpg" alt="real forest">'
+            },
+            bike3: {
+              label: "a cliff",
+              img: '<img src="bike3.jpg" alt="real cliff">'
+            },
+            bike4: {
+              label: "a river",
+              img: '<img src="bike4.jpg" alt="river">'
+            },
+            bike5: {
+              label: "a lake",
+              img: '<img src="bike5.jpg" alt="lake">'
+            },
+            bike6: {
+              label: "bike6",
+              img: '<img src="bike6.jpg" alt="flower">'
+            },
+            photo7: {
+              label: "ocean",
+              img: '<img src="bike7.jpg" alt="ocean">'
+            },
+            photo8: {
+              label: "bike8",
+              img: '<img src="bike8.jpg" alt="jungle">'
+            },
+            photo9: {
+              label: "a waterfall",
+              img: '<img src="bike9.jpg" alt="real waterfall">'
+            }
+
+          },
+
+          // TODO: set these to whichever keys are the
+          // real photographs in this image set.
+          correctAnswers: [
+            "photo8",
+            "photo9"
+          ]
+        }
+
+      ];
+
+
+      // Which level the user is currently on (0-indexed).
+      let currentLevelIndex = 0;
+
+
+      /* =========================================
+         STOPWATCH + RECEIPT STATE
+         ========================================= */
+
+      // Timestamp (ms) when the name was submitted.
+      let gameStartTime = null;
+
+      // Timestamp (ms) when the CURRENT level began.
+      let levelStartTime = null;
+
+      // Handle for the setInterval driving the live
+      // timer display, so it can be cleared later.
+      let timerIntervalId = null;
+
+      // Total count of clicks that selected an
+      // incorrect tile, across the whole game.
+      let wrongClickCount = 0;
+
+      // Time (ms) spent on each level, in order.
+      let levelTimes = [];
+
+
+      /* =========================================
+         CHANCES STATE
+         ========================================= */
+
+      const MAX_CHANCES = 3;
+      let failedAttempts = 0;
+      let levelResults = [];   // true = passed, false = ran out of chances
+      let inputLocked = false; // blocks clicks during level transitions
+
+
+
+      /* =========================================
+         FORMAT TIME
+         ========================================= */
+
+      function formatTime(ms) {
+
+        const totalTenths =
+          Math.floor(ms / 100);
+
+        const tenths =
+          totalTenths % 10;
+
+        const totalSeconds =
+          Math.floor(ms / 1000);
+
+        const seconds =
+          totalSeconds % 60;
+
+        const minutes =
+          Math.floor(totalSeconds / 60);
+
+        const pad =
+          n => String(n).padStart(2, "0");
+
+        return (
+          pad(minutes) + ":" +
+          pad(seconds) + "." +
+          tenths
+        );
+
+      }
+
+
+
+      /* =========================================
+         ESCAPE HTML
+         ========================================= */
+
+      function escapeHtml(str) {
+
+        const div =
+          document.createElement("div");
+
+        div.textContent = str;
+
+        return div.innerHTML;
+
+      }
+
+
+
+      /* =========================================
+         GRID
+         ========================================= */
+
+      let cellData = [];
+
+
+
+      /* =========================================
+         ELEMENTS
+         ========================================= */
+
+      const gridEl =
+        document.getElementById("grid");
+
+      const targetLabelEl =
+        document.getElementById("targetLabel");
+
+      const promptPrefixEl =
+        document.getElementById("promptPrefix");
+
+      const levelLabelEl =
+        document.getElementById("levelLabel");
+
+      const statusEl =
+        document.getElementById("status");
+
+      const verifyBtn =
+        document.getElementById("verifyBtn");
+
+      const reloadBtn =
+        document.getElementById("reloadBtn");
+
+      const timerDisplayEl =
+        document.getElementById("timerDisplay");
+
+      const receiptContainerEl =
+        document.getElementById("receiptContainer");
+
+      const chancesEl =
+        document.getElementById("chances");
+
+
+
+      /* =========================================
+         CHANCES (green circles -> red with an X)
+         ========================================= */
+
+      // Chances for the current level. Every level uses the
+      // default (MAX_CHANCES = 3) unless it sets its own
+      // `chances` value.
+
+      function getMaxChances() {
+
+        const level = LEVELS[currentLevelIndex];
+
+        return (level && level.chances) || MAX_CHANCES;
+
+      }
+
+
+      function renderChances() {
+
+        const total = getMaxChances();
+
+
+        // Rebuild the circles if the count changed
+
+        if (chancesEl.children.length !== total) {
+
+          chancesEl.innerHTML = "";
+
+          for (let i = 0; i < total; i++) {
+
+            const dot = document.createElement("div");
+
+            dot.className = "chance";
+
+            chancesEl.appendChild(dot);
+
+          }
+
+        }
+
+
+        chancesEl.querySelectorAll(".chance").forEach(
+          function (dot, i) {
+
+            const lost = i < failedAttempts;
+
+            dot.classList.toggle("lost", lost);
+
+            dot.textContent = lost ? "\u2715" : "";
+
+          }
+        );
+
+      }
+
+
+      function registerFailure() {
+
+        failedAttempts += 1;
+
+        renderChances();
+
+
+        // Out of chances: record the level as failed
+        // and move on.
+
+        if (failedAttempts >= getMaxChances()) {
+
+          statusEl.textContent =
+            "No chances left. Moving on...";
+
+          statusEl.className =
+            "status error";
+
+
+          levelTimes.push(
+            Date.now() - levelStartTime
+          );
+
+          levelResults.push(false);
+
+
+          inputLocked = true;
+
+          verifyBtn.disabled = true;
+
+          reloadBtn.disabled = true;
+
+
+          setTimeout(function () {
+
+            inputLocked = false;
+
+            verifyBtn.disabled = false;
+
+            reloadBtn.disabled = false;
+
+            goToNextLevel();
+
+          }, 1200);
+
+
+          return;
+
+        }
+
+
+        const left =
+          getMaxChances() - failedAttempts;
+
+        statusEl.textContent =
+          "Not quite. " + left +
+          (left === 1 ? " chance" : " chances") +
+          " left.";
+
+        statusEl.className =
+          "status error";
+
+      }
+
+
+      renderChances();
+
+
+
+      /* =========================================
+         UPDATE TIMER DISPLAY
+         ========================================= */
+
+      function updateTimerDisplay() {
+
+        if (gameStartTime === null) {
+
+          return;
+
+        }
+
+        const elapsed =
+          Date.now() - gameStartTime;
+
+        timerDisplayEl.textContent =
+          formatTime(elapsed);
+
+      }
+
+
+
+      /* =========================================
+         BUILD CAPTCHA
+         ========================================= */
+
+      function buildChallenge() {
+
+        const level =
+          LEVELS[currentLevelIndex];
+
+
+        const shapeKeys =
+          Object.keys(level.shapes);
+
+
+        const shuffledKeys =
+          [...shapeKeys];
+
+
+        shuffle(shuffledKeys);
+
+
+        cellData =
+          shuffledKeys.map(
+            key => ({
+
+              key: key,
+
+              isTarget:
+                level.correctAnswers.includes(key),
+
+              selected: false
+
+            })
+          );
+
+
+        levelLabelEl.textContent =
+          "Level " + (currentLevelIndex + 1);
+
+        targetLabelEl.textContent =
+          level.instruction;
+
+
+        renderGrid();
+
+        resetStatus();
+
+      }
+
+
+
+      /* =========================================
+         SHUFFLE
+         ========================================= */
+
+      function shuffle(arr) {
+
+        for (
+          let i = arr.length - 1;
+          i > 0;
+          i--
+        ) {
+
+          const j =
+            Math.floor(
+              Math.random() * (i + 1)
+            );
+
+
+          [
+            arr[i],
+            arr[j]
+          ] = [
+            arr[j],
+            arr[i]
+          ];
+
+        }
+
+      }
+
+
+
+      /* =========================================
+         RENDER GRID
+         ========================================= */
+
+      function renderGrid() {
+
+        gridEl.innerHTML = "";
+
+        const level =
+          LEVELS[currentLevelIndex];
+
+
+        cellData.forEach(
+          (cell, idx) => {
+
+
+            const btn =
+              document.createElement(
+                "button"
+              );
+
+
+            btn.className =
+              "cell" +
+              (
+                cell.selected
+                  ? " selected"
+                  : ""
+              );
+
+
+            btn.setAttribute(
+              "type",
+              "button"
+            );
+
+
+            btn.setAttribute(
+              "aria-label",
+              "grid tile " +
+              (idx + 1) +
+              ", " +
+              level.shapes[cell.key].label
+            );
+
+
+            const visual =
+              level.shapes[cell.key].img;
+
+
+            btn.innerHTML =
+              `
+                <span class="shape">
+                  ${visual}
+                </span>
+
+                <span class="check">
+                  ✓
+                </span>
+              `;
+
+
+            btn.addEventListener(
+              "click",
+              () => toggleCell(idx)
+            );
+
+
+            gridEl.appendChild(btn);
+
+          }
+        );
+
+      }
+
+
+
+      /* =========================================
+         SELECT / DESELECT TILE
+
+         Selecting a WRONG tile immediately costs
+         one chance (one green circle turns red).
+         Completion is checked in verify().
+         ========================================= */
+
+      function toggleCell(idx) {
+
+        if (inputLocked) return;
+
+
+        const wasSelected =
+          cellData[idx].selected;
+
+        cellData[idx].selected =
+          !wasSelected;
+
+
+        // A "new wrong pick" is selecting (not
+        // deselecting) a tile that isn't correct.
+
+        const isNewWrongPick =
+          !wasSelected &&
+          !cellData[idx].isTarget;
+
+
+        if (isNewWrongPick) {
+
+          wrongClickCount += 1;
+
+        }
+
+
+        renderGrid();
+
+        resetStatus();
+
+
+        // Runs after resetStatus so its message
+        // isn't wiped.
+
+        if (isNewWrongPick) {
+
+          registerFailure();
+
+        }
+
+      }
+
+
+
+      /* =========================================
+         RESET STATUS
+         ========================================= */
+
+      function resetStatus() {
+
+        statusEl.textContent = "";
+
+        statusEl.className =
+          "status neutral";
+
+      }
+
+
+
+      /* =========================================
+         ADVANCE TO NEXT LEVEL
+         ========================================= */
+
+      function goToNextLevel() {
+
+        currentLevelIndex += 1;
+
+        // Fresh chances for every level
+        failedAttempts = 0;
+
+        renderChances();
+
+
+        if (currentLevelIndex < LEVELS.length) {
+
+          levelStartTime = Date.now();
+
+          buildChallenge();
+
+        } else {
+
+          finishGame();
+
+        }
+
+      }
+
+
+
+      /* =========================================
+         FINISH GAME
+         ========================================= */
+
+      function finishGame() {
+
+        // Stop the live stopwatch.
+
+        if (timerIntervalId !== null) {
+
+          clearInterval(timerIntervalId);
+
+          timerIntervalId = null;
+
+        }
+
+
+        // Stop mouse tracking (trail fades out on its own)
+
+        stopTracking();
+
+
+        const totalTime =
+          levelTimes.reduce(
+            (sum, t) => sum + t,
+            0
+          );
+
+
+        gridEl.innerHTML = "";
+
+        document.querySelector(".grid-wrap")
+          .style.display = "none";
+
+        document.querySelector(".footer-row")
+          .style.display = "none";
+
+        chancesEl.style.display = "none";
+
+
+        promptPrefixEl.style.display = "none";
+
+
+       levelLabelEl.textContent =
+  "Test Complete. Thank you for your cooperation.";
+
+targetLabelEl.textContent =
+  "Verification receipt";
+
+// Hide the stopwatch under the heading
+timerDisplayEl.style.display = "none";
+
+// Keep the same gap between the heading and the card
+levelLabelEl.style.marginBottom = "50px";
+
+
+        statusEl.textContent = "";
+
+        statusEl.className =
+          "status neutral";
+
+
+        const allPassed =
+          levelResults.every(Boolean);
+
+
+        let rowsHtml = "";
+
+        levelTimes.forEach(
+          function (time, idx) {
+
+            rowsHtml +=
+              '<div class="receipt-row">' +
+              '<span>LEVEL ' + (idx + 1) + '</span>' +
+              '<span>' + formatTime(time) +
+              (levelResults[idx] ? '' : ' (FAILED)') +
+              '</span>' +
+              '</div>';
+
+          }
+        );
+
+
+        receiptContainerEl.innerHTML =
+
+          '<div class="receipt-row">' +
+          '<span>SUBJECT NAME</span>' +
+          '<span>' + escapeHtml(userName || "Human") + '</span>' +
+          '</div>' +
+
+          '<div class="receipt-row">' +
+          '<span>DATE</span>' +
+          '<span>' + new Date().toLocaleString() + '</span>' +
+          '</div>' +
+
+          '<div class="receipt-divider"></div>' +
+
+          rowsHtml +
+
+          '<div class="receipt-divider"></div>' +
+
+          '<div class="receipt-row">' +
+          '<span>TOTAL TIME</span>' +
+          '<span>' + formatTime(totalTime) + '</span>' +
+          '</div>' +
+
+           '<div class="receipt-row">' +
+          '<span>SUBJECT COMPENSATION</span>' +
+          '<span>$0.00</span>' +
+          '</div>' +
+
+          '<div class="receipt-row">' +
+          '<span>WRONG CLICKS</span>' +
+          '<span>' + wrongClickCount + '</span>' +
+          '</div>' +
+
+          '<div class="receipt-row">' +
+          '<span>MOUSE DISTANCE</span>' +
+          '<span>' + Math.round(mouseDistance) + ' px</span>' +
+          '</div>' +
+
+          '<div class="receipt-divider"></div>' +
+
+          '<div class="receipt-title">Mouse Movement Tracking</div>' +
+          '<canvas id="pathCanvas" class="path-canvas" width="600" height="600"></canvas>' +
+
+          '<div class="receipt-divider"></div>' +
+
+          '<div style="text-align:center;">' +
+          '<span class="receipt-stamp' + (allPassed ? '' : ' failed') + '">' +
+          (allPassed ? 'HUMAN&#10003;' : 'NOT VERIFIED') +
+          '</span>' +
+          '</div>';
+
+
+        receiptContainerEl.style.display =
+          "block";
+
+        drawMousePath(document.getElementById("pathCanvas"));
+
+
+        // Button that moves on to the floating images section
+
+        const nextWrap =
+          document.createElement("div");
+
+        nextWrap.style.textAlign = "center";
+
+        nextWrap.style.marginTop = "16px";
+
+       
+
+        receiptContainerEl.appendChild(nextWrap);
+
+        document.getElementById("nextPartBtn")
+          .addEventListener("click", showFloatStage);
+
+      }
+
+
+
+      /* =========================================
+         VERIFY
+
+         ALL CORRECTNESS CHECKING HAPPENS HERE.
+         ========================================= */
+
+      function verify() {
+
+        if (inputLocked) return;
+
+
+        const level =
+          LEVELS[currentLevelIndex];
+
+
+        const selectedWrongImage =
+          cellData.some(
+            cell =>
+              cell.selected &&
+              !level.correctAnswers.includes(
+                cell.key
+              )
+          );
+
+
+        const allCorrectSelected =
+          level.correctAnswers.every(
+            key =>
+              cellData.some(
+                cell =>
+                  cell.key === key &&
+                  cell.selected
+              )
+          );
+
+
+        // A wrong tile is still selected. It already
+        // cost a chance when it was clicked, so don't
+        // penalize again.
+
+        if (selectedWrongImage) {
+
+          statusEl.textContent =
+            "Deselect the incorrect tile(s) and try again.";
+
+          statusEl.className =
+            "status error";
+
+          return;
+
+        }
+
+
+        if (allCorrectSelected) {
+
+          statusEl.textContent =
+            "Verified. Nice work!";
+
+          statusEl.className =
+            "status success";
+
+
+          levelTimes.push(
+            Date.now() - levelStartTime
+          );
+
+          levelResults.push(true);
+
+
+          inputLocked = true;
+
+          verifyBtn.disabled = true;
+
+          setTimeout(function () {
+
+            inputLocked = false;
+
+            verifyBtn.disabled = false;
+
+            goToNextLevel();
+
+          }, 1200);
+
+
+          return;
+
+        }
+
+
+        // Clicked Verify before selecting every
+        // correct tile: costs a chance.
+
+        registerFailure();
+
+      }
+
+
+
+      /* =========================================
+         BUTTONS
+         ========================================= */
+
+      verifyBtn.addEventListener(
+        "click",
+        verify
+      );
+
+
+      // Reload reshuffles the grid but does NOT
+      // refill chances.
+
+      reloadBtn.addEventListener(
+        "click",
+        function () {
+
+          if (inputLocked) return;
+
+          buildChallenge();
+
+        }
+      );
+
+
+
+      /* =========================================
+         MOUSE TRACKING + TRAIL EFFECT
+         ========================================= */
+
+      const trailCanvas = document.getElementById("trailCanvas");
+      const trailCtx = trailCanvas.getContext("2d");
+
+      const TRAIL_LIFETIME = 700;   // ms before a trail point fully fades
+      let trailPoints = [];
+      let mousePath = [];           // full, permanent record of the pointer path
+      let trackingActive = false;
+      let mouseDistance = 0;        // total px travelled during the test
+      let lastMouse = null;
+
+      function resizeTrailCanvas() {
+        const dpr = window.devicePixelRatio || 1;
+        trailCanvas.width = window.innerWidth * dpr;
+        trailCanvas.height = window.innerHeight * dpr;
+        trailCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+      resizeTrailCanvas();
+      window.addEventListener("resize", resizeTrailCanvas);
+
+      window.addEventListener("pointermove", function (e) {
+        if (!trackingActive) return;
+
+        if (lastMouse) {
+          mouseDistance += Math.hypot(e.clientX - lastMouse.x, e.clientY - lastMouse.y);
+        }
+        lastMouse = { x: e.clientX, y: e.clientY };
+
+        trailPoints.push({ x: e.clientX, y: e.clientY, t: performance.now() });
+        mousePath.push({ x: e.clientX, y: e.clientY, t: performance.now() });
+      });
+
+      function drawTrail(now) {
+        trailCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+        trailPoints = trailPoints.filter(p => now - p.t < TRAIL_LIFETIME);
+
+        trailCtx.lineCap = "round";
+        trailCtx.lineJoin = "round";
+        trailCtx.shadowColor = "#ff2bd6";
+        trailCtx.shadowBlur = 16;
+
+        for (let i = 1; i < trailPoints.length; i++) {
+          const a = trailPoints[i - 1];
+          const b = trailPoints[i];
+
+          // Skip the jump if the pointer left the window and came back
+          if (b.t - a.t > 100) continue;
+
+          const alpha = 1 - (now - b.t) / TRAIL_LIFETIME;
+
+          trailCtx.strokeStyle = "rgba(66, 133, 244, " + alpha.toFixed(3) + ")";
+          trailCtx.lineWidth = 1 + alpha * 5;
+
+          trailCtx.beginPath();
+          trailCtx.moveTo(a.x, a.y);
+          trailCtx.lineTo(b.x, b.y);
+          trailCtx.stroke();
+        }
+
+        // Bright dot at the cursor
+        if (trackingActive && trailPoints.length) {
+          const head = trailPoints[trailPoints.length - 1];
+          trailCtx.fillStyle = "rgba(255, 255, 255, 0.9)";
+          trailCtx.beginPath();
+          trailCtx.arc(head.x, head.y, 3, 0, Math.PI * 2);
+          trailCtx.fill();
+        }
+
+        // Keep animating until the test is over AND the trail has faded
+        if (trackingActive || trailPoints.length) {
+          requestAnimationFrame(drawTrail);
+        }
+      }
+
+      function startTracking() {
+        trackingActive = true;
+        requestAnimationFrame(drawTrail);
+      }
+
+      function stopTracking() {
+        trackingActive = false;   // trail fades out on its own
+      }
+
+
+
+      /* =========================================
+         DRAW FULL MOUSE PATH (for the receipt)
+         ========================================= */
+
+      function drawMousePath(canvas) {
+        const ctx = canvas.getContext("2d");
+        const size = canvas.width;
+        const pad = 30;
+
+        ctx.fillStyle = "#f7f9fc";
+        ctx.fillRect(0, 0, size, size);
+
+        if (mousePath.length < 2) return;
+
+        // Fit the path's bounding box into the square, keeping proportions
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        mousePath.forEach(p => {
+          minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x);
+          minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y);
+        });
+
+        const w = (maxX - minX) || 1;
+        const h = (maxY - minY) || 1;
+        const scale = (size - pad * 2) / Math.max(w, h);
+        const offX = (size - w * scale) / 2 - minX * scale;
+        const offY = (size - h * scale) / 2 - minY * scale;
+
+        const mapX = x => x * scale + offX;
+        const mapY = y => y * scale + offY;
+
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.lineWidth = 2;
+
+        for (let i = 1; i < mousePath.length; i++) {
+          const a = mousePath[i - 1];
+          const b = mousePath[i];
+
+          // Skip the jump if the pointer left the window and came back
+          if (b.t - a.t > 100) continue;
+
+          // Blue at the start fading to pink at the end
+          const progress = i / mousePath.length;
+          ctx.strokeStyle = "hsl(" + (220 + progress * 120) + ", 85%, 55%)";
+
+          ctx.beginPath();
+          ctx.moveTo(mapX(a.x), mapY(a.y));
+          ctx.lineTo(mapX(b.x), mapY(b.y));
+          ctx.stroke();
+        }
+
+        // Start (green) and end (red) markers
+        const first = mousePath[0];
+        const last = mousePath[mousePath.length - 1];
+
+        ctx.fillStyle = "#16a34a";
+        ctx.beginPath();
+        ctx.arc(mapX(first.x), mapY(first.y), 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "#dc2626";
+        ctx.beginPath();
+        ctx.arc(mapX(last.x), mapY(last.y), 6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+
+
+      /* =========================================
+         FLOATING STAGE
+
+         Every image from the test drifts around the
+         screen. Bigger images are "closer": they move
+         faster and sit on top. Hover to pause + zoom.
+         ========================================= */
+
+      const floatStageEl =
+        document.getElementById("floatStage");
+
+      let floatItems = [];
+      let floatBuilt = false;
+      let floatRunning = false;
+      let floatLast = 0;
+
+      const REDUCED_MOTION =
+        window.matchMedia &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+
+      // Collect every image that was shown in the test
+
+      function collectShownImages() {
+
+        const out = [];
+
+        LEVELS.forEach(function (level, li) {
+
+          Object.keys(level.shapes).forEach(function (key) {
+
+            const m =
+              /src="([^"]+)"/.exec(level.shapes[key].img);
+
+            if (m) {
+
+              out.push({
+                src: m[1],
+                label: level.shapes[key].label,
+                level: li + 1
+              });
+
+            }
+
+          });
+
+        });
+
+        return out;
+
+      }
+
+
+      function buildFloatItems() {
+
+        const W = window.innerWidth;
+        const H = window.innerHeight;
+
+        const base = Math.max(
+          44,
+          Math.min(W, H) / 12
+        );
+
+        collectShownImages().forEach(function (info) {
+
+          // depth: 0.6 (far) to 1.4 (close)
+
+          const depth = 0.6 + Math.random() * 0.8;
+
+          const size = Math.min(110, base * depth);
+
+          const speed =
+            (18 + Math.random() * 30) * depth *
+            (REDUCED_MOTION ? 0.25 : 1);
+
+          const angle = Math.random() * Math.PI * 2;
+
+
+          const el = document.createElement("div");
+
+          el.className = "float-item";
+
+          el.style.width = size + "px";
+
+          el.style.height = size + "px";
+
+          el.style.zIndex = String(Math.round(depth * 10));
+
+          el.style.boxShadow =
+            "0 " + Math.round(8 * depth) + "px " +
+            Math.round(24 * depth) + "px rgba(20, 30, 50, 0.28)";
+
+
+          const img = document.createElement("img");
+
+          img.src = info.src;
+
+          img.alt = "Level " + info.level + ": " + info.label;
+
+          img.draggable = false;
+
+          el.appendChild(img);
+
+
+          const item = {
+            el: el,
+            size: size,
+            x: Math.random() * Math.max(1, W - size),
+            y: Math.random() * Math.max(1, H - size),
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            rot: (Math.random() - 0.5) * 30,
+            vr: (Math.random() - 0.5) * 6 *
+                (REDUCED_MOTION ? 0.25 : 1),
+            phase: Math.random() * Math.PI * 2,
+            freq: 0.4 + Math.random() * 0.6,
+            amp: 6 + Math.random() * 10,
+            scale: 1,
+            hover: false
+          };
+
+
+          el.addEventListener("pointerenter", function () {
+
+            item.hover = true;
+
+            el.style.zIndex = "100";
+
+          });
+
+          el.addEventListener("pointerleave", function () {
+
+            item.hover = false;
+
+            el.style.zIndex = String(Math.round(depth * 10));
+
+          });
+
+
+          floatStageEl.appendChild(el);
+
+          floatItems.push(item);
+
+        });
+
+      }
+
+
+      function floatLoop(now) {
+
+        if (!floatRunning) return;
+
+
+        const dt = Math.min(0.05, (now - floatLast) / 1000);
+
+        floatLast = now;
+
+        const W = window.innerWidth;
+        const H = window.innerHeight;
+
+        const t = now / 1000;
+
+
+        floatItems.forEach(function (it) {
+
+          // Drift (paused while hovered)
+
+          if (!it.hover) {
+
+            it.x += it.vx * dt;
+
+            it.y += it.vy * dt;
+
+            it.rot += it.vr * dt;
+
+          }
+
+
+          // Bounce softly off the screen edges
+
+          if (it.x < 0) { it.x = 0; it.vx = Math.abs(it.vx); }
+
+          if (it.x > W - it.size) {
+
+            it.x = Math.max(0, W - it.size);
+
+            it.vx = -Math.abs(it.vx);
+
+          }
+
+          if (it.y < 0) { it.y = 0; it.vy = Math.abs(it.vy); }
+
+          if (it.y > H - it.size) {
+
+            it.y = Math.max(0, H - it.size);
+
+            it.vy = -Math.abs(it.vy);
+
+          }
+
+
+          // Ease the zoom
+
+          const target = it.hover ? 1.3 : 1;
+
+          it.scale += (target - it.scale) * 0.15;
+
+
+          const bob =
+            Math.sin(t * it.freq + it.phase) * it.amp;
+
+          it.el.style.transform =
+            "translate3d(" + it.x.toFixed(1) + "px," +
+            (it.y + bob).toFixed(1) + "px,0) " +
+            "rotate(" + it.rot.toFixed(2) + "deg) " +
+            "scale(" + it.scale.toFixed(3) + ")";
+
+        });
+
+
+        requestAnimationFrame(floatLoop);
+
+      }
+
+
+      function showFloatStage() {
+
+        floatStageEl.style.display = "block";
+
+        if (!floatBuilt) {
+
+          buildFloatItems();
+
+          floatBuilt = true;
+
+        }
+
+        if (!floatRunning) {
+
+          floatRunning = true;
+
+          floatLast = performance.now();
+
+          requestAnimationFrame(floatLoop);
+
+        }
+
+      }
+
+
+
+      /* =========================================
+         INITIAL CAPTCHA
+         ========================================= */
+
+      buildChallenge();
+
+
+      nameInput.focus();
+
+
+    })();
+
+
+    /* =========================================
+   LIVE METADATA PANEL
+   ========================================= */
+
+const metaPanelEl = document.getElementById("metaPanel");
+
+const metaIds = [
+  "subject", "session", "level", "levelTime", "chances",
+  "cursor", "speed", "distance", "clicks", "wrong", "hesitation"
+];
+
+const metaEls = {};
+metaIds.forEach(function (id) {
+  metaEls[id] = document.getElementById("meta-" + id);
+});
+
+const sessionId =
+  Math.random().toString(16).slice(2, 10).toUpperCase();
+
+let metaX = 0, metaY = 0;
+let metaSpeed = 0;                 // smoothed px/sec
+let metaLastX = null, metaLastY = null, metaLastT = 0;
+let metaClicks = 0;
+let metaLastClickT = 0;
+
+window.addEventListener("pointermove", function (e) {
+  const now = performance.now();
+
+  if (metaLastX !== null) {
+    const dt = (now - metaLastT) / 1000;
+    if (dt > 0) {
+      const inst =
+        Math.hypot(e.clientX - metaLastX, e.clientY - metaLastY) / dt;
+      metaSpeed = metaSpeed * 0.7 + inst * 0.3;   // smooth it
+    }
+  }
+
+  metaLastX = e.clientX;
+  metaLastY = e.clientY;
+  metaLastT = now;
+  metaX = e.clientX;
+  metaY = e.clientY;
+});
+
+window.addEventListener("pointerdown", function () {
+  // Only count clicks during the actual test
+  if (gameStartTime !== null && timerIntervalId !== null) {
+    metaClicks += 1;
+    metaLastClickT = Date.now();
+  }
+});
+
+setInterval(function () {
+
+  const active =
+    gameStartTime !== null && timerIntervalId !== null;
+
+  metaPanelEl.classList.toggle("visible", active);
+
+  if (!active) return;
+
+  const now = Date.now();
+
+  // Decay speed to zero when the cursor stops
+  if (performance.now() - metaLastT > 120) {
+    metaSpeed *= 0.8;
+    if (metaSpeed < 1) metaSpeed = 0;
+  }
+
+  const lastAction = Math.max(metaLastClickT, levelStartTime);
+
+  metaEls.subject.textContent = userName || "Human";
+  metaEls.session.textContent = sessionId;
+  metaEls.level.textContent =
+    (currentLevelIndex + 1) + " / " + LEVELS.length;
+  metaEls.levelTime.textContent = formatTime(now - levelStartTime);
+  metaEls.chances.textContent =
+    Math.max(0, getMaxChances() - failedAttempts) + " / " + getMaxChances();
+  metaEls.cursor.textContent =
+    Math.round(metaX) + ", " + Math.round(metaY);
+  metaEls.speed.textContent = Math.round(metaSpeed) + " px/s";
+  metaEls.distance.textContent = Math.round(mouseDistance) + " px";
+  metaEls.clicks.textContent = metaClicks;
+  metaEls.wrong.textContent = wrongClickCount;
+  metaEls.hesitation.textContent =
+    ((now - lastAction) / 1000).toFixed(1) + " s";
+
+}, 100);
+
+  </script>
+
+</body>
+
+</html>
